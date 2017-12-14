@@ -1,0 +1,104 @@
+```{r}
+# First overlook ov average and median values for the variables that we will be using
+airbnb %>%
+  summarise(
+    avg_houses = mean(host_listings_count, na.rm=TRUE),
+    med_houses = median(host_listings_count, na.rm=TRUE),
+    avg_rating = mean(review_scores_rating, na.rm=TRUE),
+    med_rating = median(review_scores_rating, na.rm=TRUE),
+    avg_price = mean(price, na.rm=TRUE),
+    med_price = median(price, na.rm=TRUE)
+    )
+
+# Scaling for comparability in price vs rating
+zprice = scale(airbnb$price)
+zrating = scale(airbnb$review_scores_rating)
+
+# Z-scores of price vs rating
+ggplot(data=airbnb) + 
+  geom_density(aes(x=zprice, colour=I("blue"))) +
+  geom_density(aes(x=zrating, colour=I("red"))) +
+  theme_minimal() +
+  labs(x=" Z-scores of price and ratings", title="price vs rating")
+
+# converting host_listings_count to a factor column for anova analysis
+airbnb_hosts = airbnb %>%
+  filter(!is.na(price)) %>%
+  filter(!is.na(review_scores_rating)) %>%
+  mutate(level = ifelse(host_listings_count == 1, "low", 
+                    ifelse(host_listings_count >= 2 & host_listings_count <= 3, "med", "high"))) 
+
+# With these new factor levels, lets plot some initial histograms to see if we can visualise any differences 
+# in avg price and/or rating
+ggplot(data=airbnb_hosts, aes(x=price)) + 
+  geom_histogram(aes(fill=level), position="dodge", binwidth=40) +
+  theme_minimal() + labs(x="€ price", title="price per night / houses owned")
+
+ggplot(data=airbnb_hosts, aes(x=review_scores_rating)) +
+  geom_histogram(aes(fill=level), position="dodge", binwidth=5) +
+  theme_minimal() + labs(x="ratings score", title="ratings / houses owned")
+  
+```
+From looking at the above, it does indeed look like the hosts with a high amount of houses listed (>3) 
+have a higher price but lower ratings (they are more previalent in the higher price areas and lower rating areas 
+compared to med and low owners). Lets see if we can confirm these differences with statistical tests.
+
+We run an anova test to see if there is enough evidence to claim that at least two means in price vs amount of 
+houses owned are different. Our hypotheses follows:
+
+$$
+\left\{ \begin{eqnarray*}
+H_0: &\mu_{pLOW} = \mu_{pMED} = \mu_{pHIGH}  \\
+H_a: & \text{ at least two means are different} 
+\end{eqnarray*} \right.
+$$
+
+```{r}
+# anova test for price
+price_a = aov(data=airbnb_hosts, price ~ level)
+summary(price_a)
+
+# post hoc analysis
+TukeyHSD(price_a)
+plot(TukeyHSD(price_a))
+
+```
+Conclusion: since p-value is less than alpha, so we REJECT H0. There is enough evidence to claim that the average 
+price between the amount of houses owned are different. Our post hoc analysis confirms this.
+
+Next, we run the same anova test but this time for the review ratings:
+$$
+\left\{ \begin{eqnarray*}
+H_0: &\mu_{rLOW} = \mu_{rMED} = \mu_{rHIGH}  \\
+H_a: & \text{ at least two means are different} 
+\end{eqnarray*} \right.
+$$
+
+```{r}
+# anova test for review ratings
+rating_a = aov(data=airbnb_hosts, review_scores_rating ~ level)
+summary(rating_a)
+
+# post hoc analysis
+TukeyHSD(rating_a)
+plot(TukeyHSD(rating_a))
+
+```
+Conclusion: since p-value is less than alpha, so we REJECT H0. 
+There is enough evidence to claim that the average review score between the amount of houses owned are different. 
+We can see verify this with our post hoc analysis.
+
+Assessing normality:
+```{r}
+# normality for price
+ggplot(data=airbnb_hosts, aes(sample=scale(price))) + stat_qq() + 
+   facet_wrap(~ level, nrow=3) + geom_abline(intercept=0, slope=1)
+
+# normality for ratings
+ggplot(data=airbnb_hosts, aes(sample=scale(review_scores_rating))) + stat_qq() + 
+   facet_wrap(~ level, nrow=3) + geom_abline(intercept=0, slope=1)
+
+```
+Overall conclusion of amount of houses owned is that there are differences in price and average ratings depending 
+on how many houses the host owns. Maybe this could be due to companies listing their houses on airbnb and thus 
+charging more and giving less of a personal service expected when renting someones home/room in someones home at airbnb. 
