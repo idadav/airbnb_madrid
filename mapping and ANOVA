@@ -53,7 +53,7 @@ median_p[order(median_p$median_price, decreasing = TRUE), c(1,2)]
 qplot(airbnb$price)
 shapiro.test(airbnb_random5$price)
 ```
-Left tail, this is due to a great amount of houses available in Madrid. 
+Right tail, this is due to a great amount of houses available in Madrid. 
 We can not forget that Airbnb was made to rent private houses or rooms for little money.
 
 We used the random sample cause the sample must be between 3 and 5000. A we can see we reject normality.
