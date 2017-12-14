@@ -1,3 +1,4 @@
+```{r}
 library(ggmap)
 library(maps)
 library(rworldmap)
