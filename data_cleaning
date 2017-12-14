@@ -1,0 +1,64 @@
+```{r}
+# Loading all libraries we need
+library(tidyverse)
+library(broom)
+library(gridExtra)
+library(ggmap)
+library(maps)
+library(rworldmap)
+```
+
+
+```{r}
+airbnb = read.csv("listings.csv")
+
+# get a first overview of the dataset
+glimpse(airbnb)
+str(airbnb)
+
+# removing unnecessary columns
+airbnb$notes = NULL
+airbnb$space = NULL
+airbnb$listing_url = NULL
+airbnb$neighborhood_overview = NULL
+airbnb$transit = NULL
+airbnb$summary = NULL
+airbnb$interaction = NULL
+airbnb$house_rules = NULL
+airbnb$host_url = NULL
+airbnb$picture_url = NULL
+airbnb$thumbnail_url = NULL
+airbnb$medium_url = NULL
+airbnb$name = NULL
+airbnb$description = NULL
+airbnb$host_about = NULL
+airbnb$host_acceptance_rate = NULL
+airbnb$host_picture_url = NULL
+airbnb$host_thumbnail_url = NULL
+airbnb$host_verifications = NULL
+airbnb$jurisdiction_names = NULL
+airbnb$require_guest_phone_verification = NULL
+airbnb$require_guest_profile_picture = NULL
+airbnb$license = NULL
+airbnb$country_code = NULL
+airbnb$country = NULL
+airbnb$experiences_offered = NULL
+airbnb$last_scraped = NULL
+airbnb$xl_picture_url = NULL
+airbnb$access = NULL
+airbnb$city = NULL
+airbnb$state = NULL
+airbnb$smart_location = NULL
+airbnb$has_availability = NULL
+airbnb$square_feet = NULL
+```
+
+Removing dollar sign
+```{r}
+airbnb$price = as.numeric(gsub("\\$", "", airbnb$price))
+airbnb$weekly_price = as.numeric(gsub("\\$", "", airbnb$weekly_price))
+airbnb$monthly_price = as.numeric(gsub("\\$", "", airbnb$monthly_price))
+airbnb$security_deposit = as.numeric(gsub("\\$", "", airbnb$security_deposit))
+airbnb$cleaning_fee = as.numeric(gsub("\\$", "", airbnb$cleaning_fee))
+airbnb$extra_people = as.numeric(gsub("\\$", "", airbnb$extra_people))
+```
