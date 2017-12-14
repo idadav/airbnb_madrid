@@ -1,0 +1,90 @@
+library(ggmap)
+library(maps)
+library(rworldmap)
+# We will start by mapping all the Airbnb houses in Madrid in order to see how they are distributed.
+# Check if we can figure out different groups.
+
+map = get_map(location = 'Madrid', zoom = 13)
+
+# ggmap(map) + geom_point(data = df, aes(x = lon, y = lat))
+
+ggmap(map) + geom_point(aes(x = longitude, y = latitude, size = room_type, colour = room_type), data=airbnb,
+                        alpha=0.5)
+
+```
+As we can see there are too many points, we can not see groups or different areas. 
+That's why we are going to take a random sample of 5%
+
+
+```{r}
+airbnb_random5 = airbnb %>%
+  sample_frac(0.05, replace = TRUE)
+
+ggmap(map) + geom_point(aes(x = longitude, y = latitude, colour = room_type, size = room_type), data=airbnb_random5,
+                        alpha=0.5)
+
+```
+In central madrid it's more whole apartments and in the suburbs people are renting out rooms in their own apartments. 
+Before mapping we filtered the dataset to take a random sample of 5%.
+
+
+We will rank the neighbourhoods by mean price but we will also check the median value and the normality of the prices.
+```{r}
+avg_p = airbnb %>%
+  group_by(neighbourhood) %>%
+  summarise(avg_price = mean(price, na.rm = TRUE))
+
+as.data.frame(avg_p)
+
+avg_p[order(avg_p$avg_price, decreasing = TRUE), c(1,2)]
+
+median_p = airbnb %>%
+  group_by(neighbourhood) %>%
+  summarise(median_price = median(price, na.rm = TRUE))
+
+as.data.frame(median_p)
+
+median_p[order(median_p$median_price, decreasing = TRUE), c(1,2)]
+```
+
+
+```{r}
+qplot(airbnb$price)
+shapiro.test(airbnb_random5$price)
+```
+Left tail, this is due to a great amount of houses available in Madrid. 
+We can not forget that Airbnb was made to rent private houses or rooms for little money.
+
+We used the random sample cause the sample must be between 3 and 5000. A we can see we reject normality.
+
+Lets then look at room_type vs price
+```{r}
+ggplot(data=airbnb, aes(x=price)) + 
+  geom_histogram(aes(colour=I("grey"), fill = room_type), binwidth = 40, position =   "Dodge") + 
+  theme_minimal() + 
+  labs(x="Price in €", title="Price per home type") + 
+  xlim(0,1000)
+
+aov1 = aov(data=airbnb, price ~ room_type)
+summary(aov1)
+# We reject Ho, there are differences between the average prices
+
+# Lets do a ranking
+TukeyHSD(aov1)
+plot(TukeyHSD(aov1))
+# Hard to see due to the length of the words, lets do 3 graphs
+
+med_price = median(airbnb$price)
+mean_price = mean(airbnb$price)
+
+ggplot(data=airbnb, aes(x=room_type, y=price)) + 
+  geom_boxplot() + 
+  geom_text(data=airbnb, aes(x=room_type, y=mean_price, label=mean_price)) + 
+  theme_minimal()
+
+ggplot(data=airbnb, aes(sample=scale(price))) + 
+  stat_qq() + 
+  facet_wrap(~room_type, nrow=3) + 
+  geom_abline(intercept = 0, slope = 1) + 
+  theme_minimal() + 
+labs(title="Theoretical vs Actual Price", x="Theoretical value")
