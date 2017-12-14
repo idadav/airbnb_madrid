@@ -5,7 +5,9 @@ Dataset used: http://insideairbnb.com/get-the-data.html
 
 ## Assignment on AirBnB dataset for Madrid
 
-We decided to use this dataset as we think it would be interesting to see how prices differ from neighbourhoods and room types. What plays the biggest role? Moreover, it could be interesting to look at host_listings_count vs reviews and price, as a high value in host_listings_count infers that this is a more commercially driven business rather than someone just renting a spare room/apartment (low host_listings_count). Whcih type does the customer prefer, and which one tend to be more expensive? 
+We decided to use this dataset as we think it would be interesting to see how prices differ from neighbourhoods and room types. What plays the biggest role? Moreover, it could be interesting to look at host_listings_count vs reviews and price, as a high value in host_listings_count infers that this is a more commercially driven business rather than someone just renting a spare room/apartment (low host_listings_count). Which type does the customer prefer, and which one tend to be more expensive?
+
+We also run regression analysis using linear and logistic regression models to try and determine which factors impact price.
 
 The above can be evaluated using the following variables 
 1. price 
