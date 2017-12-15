@@ -16,12 +16,12 @@ zrating = scale(airbnb$review_scores_rating)
 
 # Z-scores of price vs rating
 ggplot(data=airbnb) + 
-  geom_density(aes(x=zprice, colour=I("blue"))) +
-  geom_density(aes(x=zrating, colour=I("red"))) +
+  geom_density(aes(x=zprice, colour=I("blue")), size=1) +
+  geom_density(aes(x=zrating, colour=I("red")), size=1) +
   theme_minimal() +
   labs(x=" Z-scores of price and ratings", title="price vs rating")
 
-# converting host_listings_count to a factor column for anova analysis
+# binning host_listings_count for ANOVA analysis
 airbnb_hosts = airbnb %>%
   filter(!is.na(price)) %>%
   filter(!is.na(review_scores_rating)) %>%
@@ -99,6 +99,8 @@ ggplot(data=airbnb_hosts, aes(sample=scale(review_scores_rating))) + stat_qq() +
    facet_wrap(~ level, nrow=3) + geom_abline(intercept=0, slope=1)
 
 ```
-Overall conclusion of amount of houses owned is that there are differences in price and average ratings depending 
-on how many houses the host owns. Maybe this could be due to companies listing their houses on airbnb and thus 
-charging more and giving less of a personal service expected when renting someones home/room in someones home at airbnb. 
+
+Overall conclusion of amount of houses owned is that there are differences in price and average ratings depending on 
+how many houses the host owns. Maybe this could be due to companies listing their houses on airbnb and thus charging more 
+and giving less of a personal service expected when renting someones home/room in someones home at airbnb, 
+and consequntly receiving lower ratings.
