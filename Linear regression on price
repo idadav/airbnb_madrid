@@ -1,0 +1,53 @@
+We run a linear regression to see if we can predict price, and which variables we can use
+```{r - Linear regression on Price}
+
+# create dataset with variables we want to check:
+airbnb_lm = airbnb_sh %>%
+  dplyr::select(price, host_is_superhost, host_listings_count, neighbourhood, room_type, bedrooms, review_scores_rating, number_of_reviews, security_deposit, cleaning_fee) 
+
+# removing missing values
+airbnb_lm = airbnb_lm[complete.cases(airbnb_lm), ]
+
+# First, we run a stepwise regression to select variables
+null_state = lm(data=airbnb_lm, price ~ 1)
+full_state = lm(data=airbnb_lm, price ~ .)
+
+stepwise = stepAIC(null_state, scope=list(lower=null_state, upper=full_state),
+                   direction="forward", na.rm=TRUE)
+
+stepwise$anova
+summary(stepwise)
+
+model1 = lm(formula = price ~ cleaning_fee + bedrooms + neighbourhood + 
+    room_type + security_deposit + review_scores_rating + number_of_reviews + 
+    host_is_superhost + host_listings_count, data = airbnb_lm)
+
+summary(model1)
+
+vif(model1) 
+# no multicollinearity 
+durbinWatsonTest(model1) 
+# stat close 2, p-vale > alpha, thus our errors are not autocorrelated
+
+# Cross validation
+xvalid = createDataPartition(airbnb_lm$price, p=0.8)
+train = airbnb_lm[xvalid$Resample1, ]
+test = airbnb_lm[-xvalid$Resample1, ]
+str(train)
+str(test)
+
+tm = trainControl(method="cv", number=5, returnData =TRUE, returnResamp = "all")
+
+m12 = train(data= train, price ~ cleaning_fee + bedrooms + neighbourhood + 
+    room_type + security_deposit + review_scores_rating + number_of_reviews + 
+    host_is_superhost + host_listings_count, method ="lm", trControl=tm)
+
+m12
+summary(m12)
+m12$finalModel
+m12$resample
+
+```
+
+Our R^2 is 0.59 and p-vale below alpha, thus our model explains 59% of the variance in price for Madrid Airbnb rentals. 
+We deem this to be a model of adequate quality.
